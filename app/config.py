@@ -17,3 +17,8 @@ GOOGLE_CLIENT_ID = (
 )
 
 GOOGLE_CLIENT_SECRET = "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"
+
+
+CURRENCY_URL = "https://api.binance.com/api/v3/ticker/price"
+USD_PRICES_URI = "wss://ws.coincap.io/prices"
+BINANCE_PRICES_URI = "wss://stream.binance.com:9443/ws/"

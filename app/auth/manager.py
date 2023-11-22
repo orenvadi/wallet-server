@@ -8,6 +8,8 @@ from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 from auth.models import User
 from auth.utilts import get_user_db
 from config import SECRET
+from wallet.schemas import WalletCreateSchema
+from wallet.services import create_wallet
 
 
 class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
@@ -16,6 +18,9 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
 
     async def on_after_register(self, user: User, request: Optional[Request] = None):
         print(f"User {user.id} has registered.")
+
+        wallet_data = WalletCreateSchema(user_id=user.id)
+        await create_wallet(wallet_data=wallet_data)
 
     async def on_after_forgot_password(
         self, user: User, token: str, request: Optional[Request] = None

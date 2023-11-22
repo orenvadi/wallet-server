@@ -4,15 +4,15 @@ from starlette.responses import JSONResponse
 
 from config import SECRET
 
-middelware_app = FastAPI()
+middleware_app = FastAPI()
 
 SECRET_KEY = SECRET or None
 
 if SECRET_KEY is None:
     raise "Missing SECRET_KEY"
-middelware_app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
+middleware_app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 
 
-@middelware_app.get("/")
+@middleware_app.get("/")
 def test():
     return JSONResponse({"message": "auth_app"})

@@ -13,7 +13,7 @@ class UserRead(schemas.BaseUser[int]):
     is_verified: bool = False
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class UserCreate(schemas.BaseUserCreate):
@@ -25,6 +25,6 @@ class UserCreate(schemas.BaseUserCreate):
     is_superuser: Optional[bool] = False
     is_verified: Optional[bool] = False
 
+
 class UserUpdate(schemas.BaseUserUpdate):
     pass
-
