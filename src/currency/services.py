@@ -5,11 +5,11 @@ import requests
 import websockets
 from fastapi import WebSocket
 
-from config import BINANCE_PRICES_URI
+from config import BINANCE_WEBSOCKET_URL
 
 
 async def send_tickers(websocket: WebSocket, coin_name: str = "ALL"):
-    uri = BINANCE_PRICES_URI
+    uri = BINANCE_WEBSOCKET_URL
     async with (
         websockets.connect(
             uri=uri + "!miniTicker@arr"
@@ -17,6 +17,15 @@ async def send_tickers(websocket: WebSocket, coin_name: str = "ALL"):
             else uri + coin_name.lower() + "@miniTicker"
         ) as ws
     ):
+        while True:
+            data = await ws.recv()
+            await websocket.send_json(data)
+            await asyncio.sleep(1)
+
+
+async def get_history_prices(websocket: WebSocket, coin_name: str, interval: str):
+    uri = BINANCE_WEBSOCKET_URL
+    async with (websockets.connect(uri=f"{uri}{coin_name}@kline_{interval}") as ws):
         while True:
             data = await ws.recv()
             await websocket.send_json(data)

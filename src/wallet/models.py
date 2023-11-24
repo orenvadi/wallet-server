@@ -17,9 +17,9 @@ class Wallet(Base):
     )
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow())
 
-    user = relationship("User", back_populates="wallets")
-    currency = relationship("Currency", back_populates="wallets")
-    transaction = relationship("Transaction", back_populates="wallets")
+    user = relationship("User", back_populates="wallet")
+    currency = relationship("Currency", back_populates="wallet")
+    transaction = relationship("Transaction", back_populates="wallet")
 
 
 class Transaction(Base):
@@ -30,12 +30,13 @@ class Transaction(Base):
         ForeignKey("wallet.id", onupdate="NO ACTION", ondelete="CASCADE"),
         nullable=False,
     )
-    name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    currency: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     quantity: Mapped[int] = mapped_column(default=0, nullable=False)
-    bought_price: Mapped[int] = mapped_column()
+    bought_price: Mapped[int] = mapped_column(nullable=True)
+    sold_price: Mapped[int] = mapped_column(nullable=True)
     executed_at: Mapped[datetime] = mapped_column(default=datetime.now())
 
-    wallet = relationship("Wallet", back_populates="transactions")
+    wallet = relationship("Wallet", back_populates="transaction")
 
 
 class Currency(Base):
@@ -46,7 +47,7 @@ class Currency(Base):
         ForeignKey("wallet.id", onupdate="NO ACTION", ondelete="CASCADE"),
         nullable=False,
     )
-    name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
     quantity: Mapped[int] = mapped_column(default=0, nullable=False)
 
-    wallet = relationship("Wallet", back_populates="currencies")
+    wallet = relationship("Wallet", back_populates="currency")

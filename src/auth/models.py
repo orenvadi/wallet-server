@@ -36,6 +36,7 @@ class Role(Base):
 class User(SQLAlchemyBaseUserTable[int], Base):
     id = Column(Integer, primary_key=True)
     email = Column(String, nullable=False)
+    username = Column(String)
     registered_at = Column(TIMESTAMP, default=datetime.utcnow)
     role_id = Column(Integer, ForeignKey("role.id"))
     hashed_password: str = Column(String(length=1024), nullable=False)

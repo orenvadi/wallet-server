@@ -1,6 +1,5 @@
-from datetime import datetime
-
 from pydantic import BaseModel
+from datetime import datetime
 
 
 class WalletCreateSchema(BaseModel):
@@ -28,3 +27,10 @@ class CurrencyReadSchema(BaseModel):
 class CurrencyChangeSchema(BaseModel):
     name: str = "USD"
     quantity: int
+
+
+class TransactionCreateSchema(BaseModel):
+    currency: str
+    quantity: int
+    bought_price: int | None
+    sold_price: int | None
