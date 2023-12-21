@@ -1,8 +1,8 @@
-"""empty message
+"""initial bd 
 
-Revision ID: db8179c069d6
+Revision ID: 797a9db42b44
 Revises: 
-Create Date: 2023-11-24 16:35:27.273479
+Create Date: 2023-12-21 14:00:23.442881
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'db8179c069d6'
+revision: str = '797a9db42b44'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -27,17 +27,19 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('user',
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('email', sa.String(), nullable=False),
-    sa.Column('username', sa.String(), nullable=True),
-    sa.Column('registered_at', sa.TIMESTAMP(), nullable=True),
-    sa.Column('role_id', sa.Integer(), nullable=True),
+    sa.Column('firstname', sa.String(), nullable=True),
+    sa.Column('lastname', sa.String(), nullable=True),
     sa.Column('hashed_password', sa.String(length=1024), nullable=False),
+    sa.Column('role_id', sa.Integer(), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('is_superuser', sa.Boolean(), nullable=False),
     sa.Column('is_verified', sa.Boolean(), nullable=False),
+    sa.Column('registered_at', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['role_id'], ['role.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('email')
     )
     op.create_table('oauth_account',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
@@ -47,7 +49,7 @@ def upgrade() -> None:
     sa.Column('refresh_token', sa.Integer(), nullable=True),
     sa.Column('account_id', sa.String(), nullable=False),
     sa.Column('account_email', sa.String(), nullable=False),
-    sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('user_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -73,12 +75,11 @@ def upgrade() -> None:
     sa.Column('wallet_id', sa.Integer(), nullable=False),
     sa.Column('currency', sa.String(length=100), nullable=False),
     sa.Column('quantity', sa.Integer(), nullable=False),
-    sa.Column('bought_price', sa.Integer(), nullable=True),
-    sa.Column('sold_price', sa.Integer(), nullable=True),
+    sa.Column('price', sa.Integer(), nullable=False),
+    sa.Column('type', sa.String(), nullable=False),
     sa.Column('executed_at', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['wallet_id'], ['wallet.id'], onupdate='NO ACTION', ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('currency')
+    sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###
 

@@ -4,21 +4,30 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DB_HOST = "monorail.proxy.rlwy.net"
-DB_PORT = "19582"
-DB_NAME = "railway"
-DB_USER = "postgres"
-DB_PASS = "2Ac6acabE-1fg*4DfgaD**5cg3gGadd6"
+DB_HOST = os.environ.get("DB_HOST")
+DB_PORT = os.environ.get("DB_PORT")
+DB_NAME = os.environ.get("DB_NAME")
+DB_USER = os.environ.get("DB_USER")
+DB_PASS = os.environ.get("DB_PASS")
+#0auth
+SECRET = os.environ.get("SECRET")
 
-SECRET = "fldsmkfjnduyeiwofncmxvdbjdew392tu9g8fdfdsdjk"
+GOOGLE_CLIENT_ID = str(os.environ.get("GOOGLE_CLIENT_ID"))
 
-GOOGLE_CLIENT_ID = (
-    "380176176992-s29p01n145j0t9rmnk3o7ctfkmsb4l0c.apps.googleusercontent.com"
-)
+GOOGLE_CLIENT_SECRET = str(os.environ.get("GOOGLE_CLIENT_SECRET"))
 
-GOOGLE_CLIENT_SECRET = "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"
+#Google mail sender API
+MAIL_HOST = os.environ.get("MAIL_HOST")
+MAIL_EMAIL = os.environ.get("MAIL_EMAIL")
+MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
+MAIL_PORT = os.environ.get("MAIL_PORT")
 
+#Binance and other similar API
+CURRENCY_URL = str(os.environ.get("CURRENCY_URL"))
+USD_PRICES_URI = str(os.environ.get("USD_PRICES_URI"))
+BINANCE_WEBSOCKET_URL = str(os.environ.get("BINANCE_WEBSOCKET_URL"))
 
-CURRENCY_URL = "https://api.binance.com/api/v3/ticker/price"
-USD_PRICES_URI = "wss://ws.coincap.io/prices"
-BINANCE_WEBSOCKET_URL = "wss://stream.binance.com:9443/ws/"
+RS_HOST = str(os.environ.get("RS_HOST"))
+RS_PORT = str(os.environ.get("RS_PORT"))
+
+CURRENCY_CACHE_TIME = str(os.environ.get("CURRENCY_CACHE_TIME"))

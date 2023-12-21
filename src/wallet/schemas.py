@@ -15,8 +15,8 @@ class WalletReadSchema(BaseModel):
 
 class CurrencyCreateSchema(BaseModel):
     wallet_id: int
-    name: str = "USD"
-    quantity: int = 10000
+    name: str = "USDT"
+    quantity: int = 100000
 
 
 class CurrencyReadSchema(BaseModel):
@@ -25,12 +25,12 @@ class CurrencyReadSchema(BaseModel):
 
 
 class CurrencyChangeSchema(BaseModel):
-    name: str = "USD"
+    name: str = "USDT"
     quantity: int
 
 
 class TransactionCreateSchema(BaseModel):
     currency: str
     quantity: int
-    bought_price: int | None
-    sold_price: int | None
+    price: int
+    type: str
