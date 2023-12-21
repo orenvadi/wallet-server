@@ -1,6 +1,6 @@
-from fastapi_mail import ConnectionConfig, MessageSchema, MessageType, FastMail
+from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 
-from src.config import MAIL_EMAIL, MAIL_PASSWORD, MAIL_HOST
+from config import MAIL_EMAIL, MAIL_HOST, MAIL_PASSWORD
 
 conf = ConnectionConfig(
     MAIL_USERNAME=MAIL_EMAIL,
@@ -12,7 +12,7 @@ conf = ConnectionConfig(
     MAIL_STARTTLS=True,
     MAIL_SSL_TLS=False,
     USE_CREDENTIALS=True,
-    VALIDATE_CERTS=True
+    VALIDATE_CERTS=True,
 )
 
 
@@ -29,7 +29,8 @@ async def send_email(email_data, token):
         subject="Fastapi-Mail module",
         recipients=lst,
         body=html,
-        subtype=MessageType.html)
+        subtype=MessageType.html,
+    )
 
     fm = FastMail(conf)
     await fm.send_message(message)

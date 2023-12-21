@@ -2,13 +2,13 @@ import uvicorn
 from fastapi import FastAPI, WebSocket
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import HTMLResponse
-from src.auth.routers import auth_router
-from src.wallet.services import send_tickers, get_history_prices_coincap, get_history_prices_gecko, get_history_prices
-from src.wallet.routers import wallet_router
 
-app = FastAPI(
-    title="Crypta"
-)
+from auth.routers import auth_router
+from wallet.routers import wallet_router
+from wallet.services import (get_history_prices, get_history_prices_coincap,
+                             get_history_prices_gecko, send_tickers)
+
+app = FastAPI(title="Crypta")
 
 origins = ["*"]
 
@@ -21,11 +21,7 @@ app.add_middleware(
 )
 
 # Auth endpoint
-app.include_router(
-    router=auth_router,
-    prefix="/api/v1/auth",
-    tags=["Auth"]
-)
+app.include_router(router=auth_router, prefix="/api/v1/auth", tags=["Auth"])
 
 # Wallet endpoint
 app.include_router(
@@ -35,21 +31,26 @@ app.include_router(
 )
 
 
-@app.get('/Hello', tags=["Hello"])
+@app.get("/Hello", tags=["Hello"])
 async def root():
-    return {'message': 'Hello it\'s main_app'}
+    return {"message": "Hello it's main_app"}
 
 
-@app.get('/api/v1/currency/get/prices/coincap', tags=["API"])
+@app.get("/api/v1/currency/get/prices/coincap", tags=["API"])
 async def get_prices_by_coincap(interval: str = "d1"):
     return get_history_prices_coincap(interval=interval)
 
 
-@app.get('/api/v1/currency/get/prices/gecko', tags=["API"])
-async def get_prices_by_gecko(symbol: str = "bitcoin", vs_currency: str = "usd",
-                                days: str | int = "90", interval: str = "daily"):
-    return get_history_prices_gecko(symbol=symbol, vs_currency=vs_currency,
-                                days=days, interval=interval)
+@app.get("/api/v1/currency/get/prices/gecko", tags=["API"])
+async def get_prices_by_gecko(
+    symbol: str = "bitcoin",
+    vs_currency: str = "usd",
+    days: str | int = "90",
+    interval: str = "daily",
+):
+    return get_history_prices_gecko(
+        symbol=symbol, vs_currency=vs_currency, days=days, interval=interval
+    )
 
 
 @app.websocket("/prices/")
@@ -61,7 +62,9 @@ async def websocket_endpoint(websocket: WebSocket, coin_name: str = "ALL"):
 @app.websocket("/history/")
 async def websocket_endpoint(websocket: WebSocket, coin_name: str, interval: str):
     await websocket.accept()
-    await get_history_prices(websocket=websocket, coin_name=coin_name, interval=interval)
+    await get_history_prices(
+        websocket=websocket, coin_name=coin_name, interval=interval
+    )
 
 
 @app.get("/api/v1/currency/get/", tags=["API"])
