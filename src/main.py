@@ -10,8 +10,9 @@ from wallet.services import (get_history_prices, get_history_prices_coincap,
 
 app = FastAPI(title="Crypta")
 
-origins = ["*"]
-
+origins = [
+    "http://localhost:5173",
+]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
