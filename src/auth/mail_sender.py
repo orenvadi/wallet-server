@@ -19,9 +19,12 @@ conf = ConnectionConfig(
 async def send_email(email_data, token):
     html = f"""your token
             {str(token)}
-    """
-    lst = [email_data]
-
+   """
+    lst = []
+    print(email_data)
+    lst.append(email_data)
+    print(lst)
+    print("sfmksd")
     message = MessageSchema(
         subject="Fastapi-Mail module",
         recipients=lst,

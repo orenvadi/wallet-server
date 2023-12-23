@@ -10,50 +10,28 @@ class WalletCreateSchema(BaseModel):
 class WalletReadSchema(BaseModel):
     id: int
     user: str
+    balance: int
     created_time: datetime
 
 
 class CurrencyCreateSchema(BaseModel):
     wallet_id: int
-    name: str
-    quantity: int | float
+    name: str = "USDT"
+    quantity: int = 100000
 
 
 class CurrencyReadSchema(BaseModel):
     name: str
-    quantity: int | float
+    quantity: int
 
 
 class CurrencyChangeSchema(BaseModel):
-    name: str
-    quantity: int | float
-
-
-class BalanceSetSchema(CurrencyCreateSchema):
-    wallet_id: int
     name: str = "USDT"
-    quantity: int | float = 100000
-
-
-class BalanceChangeSchema(CurrencyChangeSchema):
-    name: str = "USDT"
+    quantity: int
 
 
 class TransactionCreateSchema(BaseModel):
     currency: str
-    currency_2: None
-    quantity: int | float
+    quantity: int
+    price: int
     type: str
-
-
-class PurchaseCoinSchema(TransactionCreateSchema):
-    type: str = "PURCHASE"
-
-
-class SaleCoinSchema(TransactionCreateSchema):
-    type: str = "SALE"
-
-
-class SwapCoinSchema(TransactionCreateSchema):
-    currency_2: str
-    type: str = "SWAP"
