@@ -18,19 +18,7 @@ origins = [
     "http://localhost:3000",
 ]
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS", "DELETE", "PATCH", "PUT"],
-    allow_headers=[
-        "Content-Type",
-        "Set-Cookie",
-        "Access-Control-Allow-Headers",
-        "Access-Control-Allow-Origin",
-        "Authorization",
-    ],
-)
+
 
 # Auth endpoint
 app.include_router(router=auth_router, prefix="/api/v1/auth", tags=["Auth"])
@@ -47,6 +35,19 @@ app.include_router(
 async def root():
     return {"message": "Hello it's main_app"}
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS", "DELETE", "PATCH", "PUT"],
+    allow_headers=[
+        "Content-Type",
+        "Set-Cookie",
+        "Access-Control-Allow-Headers",
+        "Access-Control-Allow-Origin",
+        "Authorization",
+    ],
+)
 
 @app.websocket("/history/")
 async def websocket_endpoint(websocket: WebSocket, coin_name: str, interval: str):
