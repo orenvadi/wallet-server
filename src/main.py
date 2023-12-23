@@ -14,12 +14,7 @@ from wallet.services import (WebSocket, get_currency_data,
 app = FastAPI(title="Crypta")
 
 origins = [
-    "http://localhost",
-    "http://localhost:8080",
-    "127.0.0.1:8080",
-    "127.0.0.1:61033",
-    "127.0.0.1:61034",
-    "*",
+    "http://localhost:5173",
 ]
 
 app.add_middleware(
