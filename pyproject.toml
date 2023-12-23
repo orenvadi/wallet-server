@@ -74,8 +74,10 @@ tzdata = "2023.3"
 tzlocal = "5.2"
 urllib3 = "2.1.0"
 yarl = "1.9.2"
-redis = "^5.0.1"
+redis = "5.0.1"
 fastapi-mail = "1.4.1"
+aiosmtplib = "2.0.2"
+blinker = "1.7.0"
 
 
 [build-system]

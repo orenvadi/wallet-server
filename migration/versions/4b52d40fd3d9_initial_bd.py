@@ -1,8 +1,8 @@
 """initial bd 
 
-Revision ID: 797a9db42b44
+Revision ID: 4b52d40fd3d9
 Revises: 
-Create Date: 2023-12-21 14:00:23.442881
+Create Date: 2023-12-23 22:22:18.970181
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '797a9db42b44'
+revision: str = '4b52d40fd3d9'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -66,7 +66,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('wallet_id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
-    sa.Column('quantity', sa.Integer(), nullable=False),
+    sa.Column('quantity', sa.Float(), nullable=False),
     sa.ForeignKeyConstraint(['wallet_id'], ['wallet.id'], onupdate='NO ACTION', ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
@@ -74,6 +74,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('wallet_id', sa.Integer(), nullable=False),
     sa.Column('currency', sa.String(length=100), nullable=False),
+    sa.Column('currency_2', sa.String(length=100), nullable=True),
     sa.Column('quantity', sa.Integer(), nullable=False),
     sa.Column('price', sa.Integer(), nullable=False),
     sa.Column('type', sa.String(), nullable=False),
