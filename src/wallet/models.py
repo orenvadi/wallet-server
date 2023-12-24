@@ -5,7 +5,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
 
-TRANSACTION_OPERATIONS = ["purchase", "sale"]
+TRANSACTION_OPERATIONS = ["PURCHASE", "SALE", "SWAP"]
 
 
 class Wallet(Base):
@@ -31,6 +31,7 @@ class Transaction(Base):
         nullable=False,
     )
     currency: Mapped[str] = mapped_column(String(100), nullable=False)
+    currency_2: Mapped[str] = mapped_column(String(100), nullable=True)
     quantity: Mapped[int] = mapped_column(default=0, nullable=False)
     price: Mapped[int] = mapped_column(nullable=False)
     type: Mapped[str] = mapped_column(nullable=False)
@@ -48,6 +49,6 @@ class Currency(Base):
         nullable=False,
     )
     name: Mapped[str] = mapped_column(String(100), nullable=False)
-    quantity: Mapped[int] = mapped_column(default=0, nullable=False)
+    quantity: Mapped[float] = mapped_column(default=0, nullable=False)
 
     wallet = relationship("Wallet", back_populates="currency")

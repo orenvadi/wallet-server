@@ -1,20 +1,34 @@
+import asyncio
+
 import uvicorn
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI
+from redis import RedisError
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import HTMLResponse
 
 from auth.routers import auth_router
 from wallet.routers import wallet_router
-from wallet.services import (get_history_prices, get_history_prices_coincap,
-                             get_history_prices_gecko, send_tickers)
+from wallet.services import (WebSocket, get_currency_data,
+                             get_currency_data_from_redis, get_history_prices)
 
 app = FastAPI(title="Crypta")
 
 origins = [
-    "http://localhost:5173",
-    "http://localhost:3000",
+    "http://localhost",
+    "http://localhost:8080",
+    "127.0.0.1:8080",
+    "127.0.0.1:61033",
+    "127.0.0.1:61034",
+    "*",
 ]
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Auth endpoint
 app.include_router(router=auth_router, prefix="/api/v1/auth", tags=["Auth"])
@@ -32,44 +46,6 @@ async def root():
     return {"message": "Hello it's main_app"}
 
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS", "DELETE", "PATCH", "PUT"],
-    allow_headers=[
-        "Content-Type",
-        "Set-Cookie",
-        "Access-Control-Allow-Headers",
-        "Access-Control-Allow-Origin",
-        "Authorization",
-    ],
-)
-
-
-@app.get("/api/v1/currency/get/prices/coincap", tags=["API"])
-async def get_prices_by_coincap(interval: str = "d1"):
-    return get_history_prices_coincap(interval=interval)
-
-
-@app.get("/api/v1/currency/get/prices/gecko", tags=["API"])
-async def get_prices_by_gecko(
-    symbol: str = "bitcoin",
-    vs_currency: str = "usd",
-    days: str | int = "90",
-    interval: str = "daily",
-):
-    return get_history_prices_gecko(
-        symbol=symbol, vs_currency=vs_currency, days=days, interval=interval
-    )
-
-
-@app.websocket("/prices/")
-async def websocket_endpoint(websocket: WebSocket, coin_name: str = "ALL"):
-    await websocket.accept()
-    await send_tickers(websocket=websocket, coin_name=coin_name)
-
-
 @app.websocket("/history/")
 async def websocket_endpoint(websocket: WebSocket, coin_name: str, interval: str):
     await websocket.accept()
@@ -78,8 +54,14 @@ async def websocket_endpoint(websocket: WebSocket, coin_name: str, interval: str
     )
 
 
-@app.get("/api/v1/currency/get/", tags=["API"])
-def read_root(coin_name: str):
+@app.websocket("/ws/coin/price/")
+async def get_currency_data_(currency: str, websocket: WebSocket):
+    await websocket.accept()
+    await get_currency_data_from_redis(currency=currency, websocket=websocket)
+
+
+@app.get("/coin/price/get/", tags=["API"])
+def read_root(currency: str):
     return HTMLResponse(
         f"""
         <!DOCTYPE html>
@@ -89,9 +71,10 @@ def read_root(coin_name: str):
             </head>
             <body>
                 <h1>WebSocket Example</h1>
-                <ul id='tickerList'></ul>
+                <ol id='tickerList'></ol>
                 <script>
-                    var ws = new WebSocket(`ws://127.0.0.1:8080/prices/?coin_name={coin_name}`);
+                try {{
+                    var ws = new WebSocket(`ws://127.0.0.1:8080/ws/coin/price/?currency={currency}`);
                     ws.onmessage = function(event) {{
                         var data = JSON.parse(event.data);
                         console.log(data);
@@ -100,15 +83,33 @@ def read_root(coin_name: str):
                         listItem.textContent = data;
                         tickerList.appendChild(listItem);
                     }};
-                    
+
                     window.addEventListener('beforeunload', function() {{
                         ws.close();
                     }});
+                    }}
+                    catch (e) {{
+                        console.log(e);
+                    }}
                 </script>
             </body>
         </html>
         """
     )
+
+
+async def startup_event():
+    print("Server is starting")
+
+
+@app.on_event("startup")
+async def on_startup():
+    try:
+        asyncio.create_task(get_currency_data())
+    except asyncio.TimeoutError as e:
+        print(e)
+    except RedisError as e:
+        print(e)
 
 
 if __name__ == "__main__":
