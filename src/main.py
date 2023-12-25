@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from redis import RedisError
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import HTMLResponse
-
+from websockets.exceptions import ConnectionClosed
 from auth.routers import auth_router
 from wallet.routers import wallet_router
 from wallet.services import (WebSocket, get_currency_data,
@@ -104,12 +104,17 @@ async def startup_event():
 
 @app.on_event("startup")
 async def on_startup():
-    try:
-        asyncio.create_task(get_currency_data())
-    except asyncio.TimeoutError as e:
-        print(e)
-    except RedisError as e:
-        print(e)
+    while True:
+        try:
+            asyncio.create_task(get_currency_data())
+            break  
+        except ConnectionClosed as e:
+            print(f"Websocket connection closed: {e}")
+            await asyncio.sleep(1)  
+            print("Reconnecting...")
+        except Exception as e:
+            print(f"Error during startup: {e}")
+            break
 
 
 if __name__ == "__main__":
