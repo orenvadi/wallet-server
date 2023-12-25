@@ -39,3 +39,4 @@ class LoginSchema(BaseModel):
 class RoleCreateSchema(BaseModel):
     name: str
     permissions: dict
+

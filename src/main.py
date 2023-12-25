@@ -2,10 +2,10 @@ import asyncio
 
 import uvicorn
 from fastapi import FastAPI
-from redis import RedisError
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import HTMLResponse
 from websockets.exceptions import ConnectionClosed
+
 from auth.routers import auth_router
 from wallet.routers import wallet_router
 from wallet.services import (WebSocket, get_currency_data,
@@ -14,19 +14,16 @@ from wallet.services import (WebSocket, get_currency_data,
 app = FastAPI(title="Crypta")
 
 origins = [
-    "http://localhost",
-    "http://localhost:8080",
-    "127.0.0.1:8080",
-    "127.0.0.1:61033",
-    "127.0.0.1:61034",
-    "*",
+    "http://localhost:5173",
+    "127.0.0.1:5173",
+    "https://crypto-wallet-elif.netlify.app",
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"],
     allow_headers=["*"],
 )
 
@@ -104,17 +101,15 @@ async def startup_event():
 
 @app.on_event("startup")
 async def on_startup():
-    while True:
-        try:
-            asyncio.create_task(get_currency_data())
-            break  
-        except ConnectionClosed as e:
-            print(f"Websocket connection closed: {e}")
-            await asyncio.sleep(1)  
-            print("Reconnecting...")
-        except Exception as e:
-            print(f"Error during startup: {e}")
-            break
+    try:
+        asyncio.create_task(get_currency_data())
+    except ConnectionClosed as e:
+        print(f"Websocket connection closed: {e}")
+        asyncio.create_task(get_currency_data())
+        print("Reconnecting...")
+    except Exception as e:
+        print(f"Error during startup: {e}")
+        asyncio.create_task(get_currency_data())
 
 
 if __name__ == "__main__":
