@@ -16,7 +16,6 @@ app = FastAPI(title="Crypta")
 origins = [
     "http://localhost:5173",
     "127.0.0.1:5173",
-    "https://crypto-wallet-elif.netlify.app",
 ]
 
 app.add_middleware(
