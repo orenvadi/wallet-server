@@ -30,7 +30,7 @@ BINANCE_WEBSOCKET_URL = str(os.environ.get("BINANCE_WEBSOCKET_URL"))
 BINANCE_WEBSOCKET_ALL_COINS_URL = str(os.environ.get("BINANCE_WEBSOCKET_ALL_COINS_URL"))
 
 RS_HOST = str(os.environ.get("RS_HOST"))
-RS_PORT = int(os.environ.get("RS_PORT"))
+RS_PORT = str(os.environ.get("RS_PORT"))
 RS_USER = str(os.environ.get("RS_USER"))
 RS_PASS = str(os.environ.get("RS_PASS"))
 
