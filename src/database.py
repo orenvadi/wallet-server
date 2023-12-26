@@ -18,7 +18,7 @@ async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
 
 redis_client = StrictRedis(
     host=RS_HOST,
-    port=RS_PORT,
+    port=int(RS_PORT),
     username=RS_USER,
     password=RS_PASS,
     db=0,
