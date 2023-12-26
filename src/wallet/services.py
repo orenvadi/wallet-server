@@ -472,6 +472,8 @@ async def save_coin_data_to_redis(json_list):
             price_key = f"{str(symbol)}"
             redis_client.set(history_key, str(json_data), ex=CURRENCY_CACHE_TIME)
             redis_client.set(price_key, str(json_data))
+    except Exception as e:
+        print(e)
     finally:
         redis_client.close()
 

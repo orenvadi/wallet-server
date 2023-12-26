@@ -50,7 +50,7 @@ async def websocket_endpoint(websocket: WebSocket, coin_name: str, interval: str
     )
 
 
-@app.websocket("/ws/coin/price/")
+@app.websocket("/wss/coin/price/")
 async def get_currency_data_(currency: str, websocket: WebSocket):
     await websocket.accept()
     await get_currency_data_from_redis(currency=currency, websocket=websocket)
@@ -70,7 +70,7 @@ def read_root(currency: str):
                 <ol id='tickerList'></ol>
                 <script>
                 try {{
-                    var ws = new WebSocket(`ws://127.0.0.1:8080/ws/coin/price/?currency={currency}`);
+                    var ws = new WebSocket(`ws://127.0.0.1:8000/ws/coin/price/?currency={currency}`);
                     ws.onmessage = function(event) {{
                         var data = JSON.parse(event.data);
                         console.log(data);
