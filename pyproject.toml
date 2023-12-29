@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "wallet_backend"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.10"
 alembic = "1.12.1"
 annotated-types = "0.6.0"
 anyio = "3.7.1"
