@@ -24,18 +24,14 @@ MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
 MAIL_PORT = os.environ.get("MAIL_PORT")
 
 # Binance and other similar API
-CURRENCY_URL = str(os.environ.get("CURRENCY_URL"))
-USD_PRICES_URI = str(os.environ.get("USD_PRICES_URI"))
-BINANCE_WEBSOCKET_URL = str(os.environ.get("BINANCE_WEBSOCKET_URL"))
 BINANCE_WEBSOCKET_ALL_COINS_URL = str(os.environ.get("BINANCE_WEBSOCKET_ALL_COINS_URL"))
 
 RS_HOST = str(os.environ.get("RS_HOST"))
 RS_PORT = str(os.environ.get("RS_PORT"))
-RS_USER = str(os.environ.get("RS_USER"))
-RS_PASS = str(os.environ.get("RS_PASS"))
 
+REDIS_URL = f"redis://{RS_HOST}:{RS_PORT}"
 
-CURRENCY_CACHE_TIME = int(os.environ.get("CURRENCY_CACHE_TIME"))
+CURRENCY_CACHE_TIME = str(os.environ.get("CURRENCY_CACHE_TIME"))
 
 BINANCE_USDT_PAIRS_LIST = [
     "DASHUSDT",

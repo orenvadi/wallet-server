@@ -9,20 +9,21 @@ from websockets.exceptions import ConnectionClosed
 from auth.routers import auth_router
 from wallet.routers import wallet_router
 from wallet.services import (WebSocket, get_currency_data,
-                             get_currency_data_from_redis, get_history_prices)
+                             get_currency_data_from_redis)
 
 app = FastAPI(title="Crypta")
 
 origins = [
     "http://localhost:5173",
     "127.0.0.1:5173",
+    "*",
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
@@ -42,15 +43,7 @@ async def root():
     return {"message": "Hello it's main_app"}
 
 
-@app.websocket("/history/")
-async def websocket_endpoint(websocket: WebSocket, coin_name: str, interval: str):
-    await websocket.accept()
-    await get_history_prices(
-        websocket=websocket, coin_name=coin_name, interval=interval
-    )
-
-
-@app.websocket("/wss/coin/price/")
+@app.websocket("/ws/coin/price/")
 async def get_currency_data_(currency: str, websocket: WebSocket):
     await websocket.accept()
     await get_currency_data_from_redis(currency=currency, websocket=websocket)
@@ -70,7 +63,7 @@ def read_root(currency: str):
                 <ol id='tickerList'></ol>
                 <script>
                 try {{
-                    var ws = new WebSocket(`ws://127.0.0.1:8000/ws/coin/price/?currency={currency}`);
+                        var ws = new WebSocket(`ws://192.168.0.102:8080/ws/coin/price/?currency={currency}`);
                     ws.onmessage = function(event) {{
                         var data = JSON.parse(event.data);
                         console.log(data);

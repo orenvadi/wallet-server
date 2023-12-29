@@ -1,19 +1,19 @@
 import asyncio
-import datetime
 import json
 
+import aioredis
 import websockets
 from fastapi import HTTPException, WebSocket
-from redis import RedisError
 from sqlalchemy import insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.websockets import WebSocketState
 
+# from main import redis_client
 from auth.models import User
 from config import (BINANCE_CURRENCY_LIST, BINANCE_USDT_PAIRS_LIST,
-                    BINANCE_WEBSOCKET_ALL_COINS_URL, BINANCE_WEBSOCKET_URL,
-                    CURRENCY_CACHE_TIME)
-from database import async_session_maker, redis_client
+                    BINANCE_WEBSOCKET_ALL_COINS_URL, CURRENCY_CACHE_TIME,
+                    REDIS_URL)
+from database import async_session_maker
 
 from . import schemas
 from .models import TRANSACTION_OPERATIONS, Currency, Transaction, Wallet
@@ -246,13 +246,16 @@ async def get__balance(user_id: int, session: AsyncSession = async_session_maker
 # Redis
 async def get_current_price(currency: str):
     try:
-        key = currency + "USDT"
-        currency_data = redis_client.get(key).replace("'", '"')
-        data_dict = json.loads(currency_data)
-        price = data_dict["c"]
-        if price:
-            return float(price)
-        return {"message": "Error happened. (Probably coin doesn't exist)"}
+        redis_client = await aioredis.from_url(REDIS_URL, decode_responses=True)
+        async with redis_client:
+            key = currency + "USDT"
+            currency_data = await redis_client.get(key)
+            currency_data = currency_data.replace("'", '"')
+            data_dict = json.loads(currency_data)
+            price = data_dict["c"]
+            if price:
+                return float(price)
+            return {"message": "Error happened. (Probably coin doesn't exist)"}
     except Exception as e:
         print(e)
 
@@ -333,7 +336,11 @@ async def buy__currency(
             balance=schemas.BalanceChangeSchema(**balance_dict),
             session=session,
         )
-        return {"message": f"{c_quantity} {t_currency} successfully purchased"}
+        return {
+            "message": f"{c_quantity} {t_currency} successfully purchased",
+            "price(all)": f"{c_quantity * price}",
+            "price": f"{price}",
+        }
     except HTTPException as e:
         return e
     except Exception as e:
@@ -385,7 +392,11 @@ async def sell__currency(
         await set__balance(
             user_id=user_id, balance=schemas.BalanceChangeSchema(**balance_dict)
         )
-        return {"message": f"{c_quantity} {t_currency} successfully sold"}
+        return {
+            "message": f"{c_quantity} {t_currency} successfully sold",
+            "price(all)": f"{c_quantity * price}",
+            "price": f"{price}",
+        }
     except HTTPException as e:
         return e
     except Exception as e:
@@ -450,7 +461,9 @@ async def swap__currency(
             wallet_id=wallet.id, transaction=transaction_dict, session=session
         )
         return {
-            "message": f"{c_quantity} {t_currency} successfully swapped to {c_quantity_2} {t_currency_2}"
+            "message": f"{c_quantity} {t_currency} successfully swapped to {c_quantity_2} {t_currency_2}",
+            "price(all)": f"{c_quantity * price_1 / price_2}",
+            "price": f"{price_1 / price_2}",
         }
     except HTTPException as e:
         return e
@@ -463,52 +476,53 @@ async def swap__currency(
 # Redis
 async def save_coin_data_to_redis(json_list):
     try:
-        for json_data in json_list:
-            if "USDT" not in json_data["s"]:
-                continue
-            event_time = json_data["E"]
-            symbol = json_data["s"]
-            history_key = f"{str(event_time)}_{symbol}"
-            price_key = f"{str(symbol)}"
-            redis_client.set(history_key, str(json_data), ex=CURRENCY_CACHE_TIME)
-            redis_client.set(price_key, str(json_data))
+        redis_client = await aioredis.from_url(REDIS_URL)
+        async with redis_client:
+            for json_data in json_list:
+                if "USDT" not in json_data["s"]:
+                    continue
+                event_time = json_data["E"]
+                symbol = json_data["s"]
+                history_key = f"{str(event_time)}_{symbol}"
+                price_key = f"{str(symbol)}"
+                await redis_client.set(
+                    history_key, str(json_data), ex=CURRENCY_CACHE_TIME
+                )
+                await redis_client.set(price_key, str(json_data))
     except Exception as e:
         print(e)
-    finally:
-        redis_client.close()
 
 
 async def get_currency_data_from_redis(currency: str, websocket: WebSocket):
     try:
         await check_pair_in_list(currency)
+        redis_client = await aioredis.from_url(REDIS_URL)
+        async with redis_client:
+            keys = await redis_client.keys(f"*_{currency}")
+            # keys = await redis_client.scan_iter(f"*_{currency}", count=100)
+            for key in keys:
+                value = await redis_client.get(key)
+                if isinstance(value, bytes):
+                    value_dict = json.loads(str(value, "utf-8").replace("'", '"'))
+                    time = value_dict["E"]
+                    symbol = value_dict["s"]
+                    price = value_dict["c"]
+                    data = {"time": time, "symbol": symbol, "price": price}
+                    await websocket.send_json(str(data))
 
-        for key in redis_client.scan_iter(f"*_{currency}", count=100):
-            value = redis_client.get(key)
-            value_dict = json.loads(str(value).replace("'", '"'))
-            time = value_dict["E"] / 1000
-            time = datetime.datetime.utcfromtimestamp(time).strftime(
-                "%Y-%m-%d %H:%M:%S"
-            )
-            symbol = value_dict["s"]
-            price = value_dict["c"]
-            data = {"time": time, "symbol": symbol, "price": price}
-            await websocket.send_json(str(data))
-
-        while websocket.client_state != WebSocketState.DISCONNECTED:
-            for key in redis_client.scan_iter(f"{currency}", count=100):
-                value = redis_client.get(key)
-                value_dict = json.loads(str(value).replace("'", '"'))
-                time = value_dict["E"] / 1000
-                time = datetime.datetime.utcfromtimestamp(time).strftime(
-                    "%Y-%m-%d %H:%M:%S"
-                )
-                symbol = value_dict["s"]
-                price = value_dict["c"]
-                data = {"time": time, "symbol": symbol, "price": price}
-                await websocket.send_json(str(data))
-                await asyncio.sleep(1)
-    except RedisError as e:
-        print(f"Error while getting coin data: {e}")
+            while websocket.client_state != WebSocketState.DISCONNECTED:
+                keys = await redis_client.keys(f"*_{currency}")
+                # keys = await redis_client.scan_iter(f"*_{currency}", count=100)
+                for key in keys:
+                    value = await redis_client.get(key)
+                    if isinstance(value, bytes):
+                        value_dict = json.loads(str(value, "utf-8").replace("'", '"'))
+                        time = value_dict["E"]
+                        symbol = value_dict["s"]
+                        price = value_dict["c"]
+                        data = {"time": time, "symbol": symbol, "price": price}
+                        await websocket.send_json(str(data))
+                        await asyncio.sleep(1)
     except Exception as e:
         print(f"Unexpected error: {e}")
     finally:
@@ -535,12 +549,3 @@ async def get_currency_data():
         except Exception as e:
             print(f"Error while getting coin data: {e}")
             break
-
-
-async def get_history_prices(websocket: WebSocket, coin_name: str, interval: str):
-    uri = BINANCE_WEBSOCKET_URL
-    async with (websockets.connect(uri=f"{uri}{coin_name}@kline_{interval}") as ws):
-        while True:
-            data = await ws.recv()
-            await websocket.send_json(data)
-            await asyncio.sleep(1)
