@@ -31,7 +31,9 @@ RS_PORT = str(os.environ.get("RS_PORT"))
 RS_USER = str(os.environ.get("RS_PORT"))
 RS_PASS = str(os.environ.get("RS_PORT"))
 
-REDIS_URL = f"redis://{RS_USER}:{RS_PASS}@{RS_HOST}:{RS_PORT}"
+REDIS_URL = (
+    "redis://default:gLeOPo52jAg1OIC36c6A1dFaff6pHJ5p@viaduct.proxy.rlwy.net:22380"
+)
 CURRENCY_CACHE_TIME = str(os.environ.get("CURRENCY_CACHE_TIME"))
 
 BINANCE_USDT_PAIRS_LIST = [
